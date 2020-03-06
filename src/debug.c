@@ -1,0 +1,54 @@
+#include "debug.h"
+
+void disassemble_chunk(Chunk* chunk, const char* name){
+    printf("== %s ==\n", name);
+
+    for(int offset = 0; offset < chunk->len;){
+        offset = disassemble_instruction(chunk, offset);
+    }
+}
+
+int disassemble_instruction(Chunk* chunk, int offset){
+    printf(" Offset - %d ", offset);
+    if(offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1]){
+        printf(" | ");
+    }else
+    {
+        printf(" at line %d ", chunk->lines[offset]);
+    }
+    
+    uint8_t byte = chunk->code[offset];
+    switch(byte){
+        case OP_RETURN:
+            return simple_instruction("OP_RETURN", offset);
+        case OP_NEGATE:
+            return simple_instruction("OP_NEGATE", offset);
+        case OP_ADD:
+            return simple_instruction("OP_ADD", offset);
+        case OP_SUBTRACT:
+            return simple_instruction("OP_SUBTRACT", offset);
+        case OP_MULTIPLY:
+            return simple_instruction("OP_MULTIPLY", offset);
+        case OP_DIVIDE:
+            return simple_instruction("OP_DIVIDE", offset);
+        case OP_CONSTANT:
+            return constant_instruction("OP_CONSTANT", chunk, offset);
+        default:
+            printf("Unknown OpCode %d \n", byte);
+            return offset + 1;
+    }
+}
+
+static int simple_instruction(const char* name, int offset){
+    printf(" Name %s \n", name);
+    return offset + 1;
+}
+
+static int  constant_instruction(const char* name, Chunk* chunk, int offset){
+    uint8_t constant_index = chunk->code[offset + 1];
+    printf(" Name: %s Constant index: %d Constant value: ", name, constant_index);
+    Value constant_value = chunk->constants.values[constant_index];
+    print_value_array(constant_value);
+    printf("\n");
+    return offset + 2;
+}
