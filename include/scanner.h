@@ -43,5 +43,34 @@ void init_scanner(const char* source);
 
 Token scan_token();
 
+bool is_at_end();
+
+bool is_digit(char character);
+
+bool is_alpha(char character);
+
+char advance();
+
+bool match(char expected);
+
+void skip_whitespaces();
+
+char peek();
+
+char peek_next();
+
+Token make_token(TokenType token_type);
+
+Token make_token_string();
+
+Token make_token_number();
+
+Token make_token_identifier();
+
+TokenType check_keyword(int start, int rem_len, const char* rest, TokenType type);
+
+TokenType identifier_token_type();
+
+Token error_token(const char* message);
 
 #endif
