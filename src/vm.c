@@ -25,15 +25,18 @@ void free_virtual_machine(){
 }
 
 InterpretResult interpret(const char* source){
-    compile(source);
-    return INTERPRET_OK;
+    Chunk chunk;
+    init_chunk(&chunk);
+    if(!compile(source, &chunk)){
+        free_chunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+    virtual_machine.chunk = &chunk;
+    virtual_machine.instruction_pointer = chunk.code;
+    InterpretResult result = run();
+    free_chunk(&chunk);
+    return result;
 }
-
-/*InterpretResult interpret(Chunk* chunk){
-    virtual_machine.chunk = chunk;
-    virtual_machine.instruction_pointer = chunk->code;
-    return run();
-}*/
 
 InterpretResult run(){
     #define READ_BYTE() (*virtual_machine.instruction_pointer++)

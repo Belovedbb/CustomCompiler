@@ -23,7 +23,7 @@ void skip_whitespaces(){
                 advance();
                 break;
             case '/':{
-                if(peek_next() == '/' && !is_at_end()){
+                if(peek_next() == '/'){
                     while(peek() != '\n' &&  !is_at_end)
                         advance();
                 }
@@ -46,8 +46,11 @@ void init_scanner(const char* source){
 
 Token scan_token(){
     scanner.start = scanner.current;
+    
     if(is_at_end())
         return make_token(TOKEN_EOF);
+
+    skip_whitespaces();
 
     char character = advance();
 
