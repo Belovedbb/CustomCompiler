@@ -32,11 +32,11 @@ ParseRule rules[]= {
     {NULL, NULL, PREC_NONE},//TOKEN_CLASS
     {NULL, NULL, PREC_NONE},//TOKEN_ELSE
     {NULL, NULL, PREC_NONE},//TOKEN_IF
-    {NULL, NULL, PREC_NONE},//TOKEN_FALSE
-    {NULL, NULL, PREC_NONE},//TOKEN_TRUE
+    {literal, NULL, PREC_NONE},//TOKEN_FALSE
+    {literal, NULL, PREC_NONE},//TOKEN_TRUE
     {NULL, NULL, PREC_NONE},//TOKEN_FOR
     {NULL, NULL, PREC_NONE},//TOKEN_FUN
-    {NULL, NULL, PREC_NONE},//TOKEN_NIL
+    {literal, NULL, PREC_NONE},//TOKEN_NIL
     {NULL, NULL, PREC_NONE},//TOKEN_OR
     {NULL, NULL, PREC_NONE},//TOKEN_PRINT
     {NULL, NULL, PREC_NONE},//TOKEN_RETURN
@@ -139,6 +139,19 @@ void number(){
     emit_constant(value);
 }
 
+void literal(){
+    switch(parser.previous.type){
+        case TOKEN_TRUE:
+            emit_byte(OP_TRUE);
+        case TOKEN_FALSE:
+            emit_byte(OP_FALSE);
+        case TOKEN_NIL:
+            emit_byte(OP_NIL);
+        default:
+            break;
+    }
+}
+
 void grouping(){
     expression();
     consume(TOKEN_RIGHT_PAREN, " expected ')' after expression");
@@ -182,7 +195,7 @@ void binary(){
 }
 
 uint8_t make_constant(double value){
-    int constant_index = add_constant(current_chunk(), value);
+    int constant_index = add_constant(current_chunk(), NUMBER_VALUE(value));
     if( constant_index > STACK_MAX){
         error_at_current("too many constant");
         return;

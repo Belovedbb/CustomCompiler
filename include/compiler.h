@@ -2,6 +2,7 @@
 #define COMPILER_COMPILER_H
 
 #include <stdlib.h>
+#include "value.h"
 #include "common.h"
 #include "scanner.h"
 #include "vm.h"
@@ -61,6 +62,7 @@ void parse_precedence(Precedence precedence);
 
 //expressions
 void number();
+void literal();
 void grouping();
 void unary();
 void binary();

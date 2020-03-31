@@ -1,6 +1,8 @@
 #ifndef COMPILER_VM_H
 #define COMPILER_VM_H
 
+#include <stdarg.h>
+#include <stdio.h>
 #include "common.h"
 #include "value.h"
 #include "chunk.h"
@@ -32,7 +34,8 @@ void free_virtual_machine();
 //vm operations
 void push(Value value);
 Value pop();
-
+Value peek_value(int distance);
+void runtime_error(const char* format, ...);
 
 //vm utils
 //InterpretResult interpret(Chunk* chunk);

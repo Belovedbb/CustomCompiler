@@ -2,6 +2,7 @@
 
 VirtualMachine virtual_machine;
 
+
 void init_virtual_machine(){
     reset_stack();
 }
@@ -24,6 +25,23 @@ void free_virtual_machine(){
 
 }
 
+Value peek_value(int distance){
+    return virtual_machine.stack_top[-1 - distance];
+}
+
+void runtime_error(const char* format, ...){
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    uint8_t instruction = virtual_machine.instruction_pointer - virtual_machine.chunk->code - 1;
+    int line = virtual_machine.chunk->lines[instruction];
+    fprintf(stderr, "error in line [%d]", line);
+    reset_stack();
+}
+
 InterpretResult interpret(const char* source){
     Chunk chunk;
     init_chunk(&chunk);
@@ -41,11 +59,15 @@ InterpretResult interpret(const char* source){
 InterpretResult run(){
     #define READ_BYTE() (*virtual_machine.instruction_pointer++)
     #define READ_CONSTANT() (virtual_machine.chunk->constants.values[READ_BYTE()])
-    #define BINARY_OP(operator) \
+    #define BINARY_OP(value_type, operator) \
             do{\
-                double b  = pop();\
-                double a = pop();\
-                push(a operator b);\
+                if(!IS_NUMBER(peek_value(0)) || IS_NUMBER(peek_value(1))){\
+                    runtime_error("literal should be a number");\
+                    return INTERPRET_RUNTIME_ERROR;\
+                }\
+                double b  = AS_NUMBER(pop());\
+                double a = AS_NUMBER(pop());\
+                push(value_type(a operator b));\
             }while(false)
 
         for(;;){
@@ -73,20 +95,33 @@ InterpretResult run(){
                     break;
                 }
                 case OP_NEGATE:{
-                    push(-pop());
+                    if(!IS_NUMBER(peek_value(0))){
+                        runtime_error("operand must be a number");
+                        return INTERPRET_RUNTIME_ERROR;
+                    }
+                    push(NUMBER_VALUE(-AS_NUMBER(pop())));
                     break;
                 }
                 case OP_ADD:
-                    BINARY_OP(+);
+                    BINARY_OP(NUMBER_VALUE, +);
                     break;
                 case OP_SUBTRACT:
-                    BINARY_OP(-);
+                    BINARY_OP(NUMBER_VALUE, -);
                     break;
                 case OP_MULTIPLY:
-                    BINARY_OP(*);
+                    BINARY_OP(NUMBER_VALUE, *);
                     break;
                 case OP_DIVIDE: 
-                    BINARY_OP(/);
+                    BINARY_OP(NUMBER_VALUE, /);
+                    break;
+                case OP_TRUE:
+                    push(BOOL_VALUE(true));
+                    break;
+                case OP_FALSE:
+                    push(BOOL_VALUE(false));
+                    break;
+                case OP_NIL:
+                    push(NIL_VALUE(0));
                     break;
             }
         }
